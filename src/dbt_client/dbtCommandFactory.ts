@@ -183,8 +183,18 @@ export class DBTCommandFactory {
     const { plusOperatorLeft, modelName, plusOperatorRight } = params;
     const profilesDirParams = this.profilesDirParams(profilesDir);
 
+    const compileModelCommandAdditionalParams = workspace
+      .getConfiguration("dbt")
+      .get<string[]>("runModelCommandAdditionalParams", []);
+
     return {
-      commandAsString: `dbt compile --model ${params.plusOperatorLeft}${params.modelName}${params.plusOperatorRight}`,
+      commandAsString: `dbt compile --model ${params.plusOperatorLeft}${
+        params.modelName
+      }${params.plusOperatorRight}${
+        compileModelCommandAdditionalParams.length > 0
+          ? " " + compileModelCommandAdditionalParams.join(" ")
+          : ""
+      }`,
       statusMessage: "Compiling dbt models...",
       processExecutionParams: {
         cwd: projectRoot.fsPath,
@@ -194,6 +204,7 @@ export class DBTCommandFactory {
             "'compile'",
             "'--select'",
             `'${plusOperatorLeft}${modelName}${plusOperatorRight}'`,
+            ...compileModelCommandAdditionalParams.map((param) => `'${param}'`),
             ...profilesDirParams,
           ]),
         ],
